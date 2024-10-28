@@ -43,7 +43,6 @@ async function updateUserStatusInAirtable(recordId, newStatus) {
   });
 }
 
-// GET request to retrieve redemption code status
 app.get('/api/redemption-code-status/:redemptionCode', async (req, res) => {
   const { redemptionCode } = req.params;
 
@@ -56,12 +55,21 @@ app.get('/api/redemption-code-status/:redemptionCode', async (req, res) => {
   try {
     const records = await fetchUserStatusFromAirtable(redemptionCode);
     if (records.length > 0) {
-      const status = records[0].get('Redemption Status');
-      const recordId = records[0].id;
+      const record = records[0];
+      const status = record.get('Status'); // Make sure 'Status' is the correct field name
+      const recordId = record.id;
 
       // Cache the result
       cache.set(redemptionCode, { status, recordId });
-      res.json({ status });
+
+      // Send a response with the required data fields
+      res.json({
+        redemptionCode: record.get('Redemption Code'),
+        establishmentName: record.get('Official Establishment Name'),
+        establishmentType: record.get('Establishment Type'),
+        rating: record.get('Rating'),
+        redemptionStatus: record.get("Redemption Status"),
+      });
     } else {
       res.status(404).json({ error: 'Redemption code not found' });
     }
@@ -69,6 +77,7 @@ app.get('/api/redemption-code-status/:redemptionCode', async (req, res) => {
     res.status(500).json({ error: 'Failed to retrieve redemption code status' });
   }
 });
+
 
 // PUT request to update redemption code status
 app.put('/api/redemption-code-status/:redemptionCode', async (req, res) => {
