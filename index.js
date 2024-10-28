@@ -23,11 +23,11 @@ const tableName = 'tblSsW6kAWQd3LZVa';
 // In-memory cache for user statuses
 const cache = new NodeCache({ stdTTL: 60 }); // Cache for 60 seconds
 
-// Function to fetch user status from Airtable
-async function fetchUserStatusFromAirtable(userId) {
+// Function to fetch user status from Airtable using Redemption Code
+async function fetchUserStatusFromAirtable(redemptionCode) {
   return base(tableName)
     .select({
-      filterByFormula: `{UserID} = "${userId}"`,
+      filterByFormula: `{Redemption Code} = "${redemptionCode}"`,
       maxRecords: 1,
     })
     .firstPage();
@@ -40,24 +40,24 @@ async function updateUserStatusInAirtable(recordId, newStatus) {
   });
 }
 
-// GET request to retrieve user status
-app.get('/api/user-status/:userId', async (req, res) => {
-  const { userId } = req.params;
+// GET request to retrieve user status by Redemption Code
+app.get('/api/user-status/:redemptionCode', async (req, res) => {
+  const { redemptionCode } = req.params;
 
   // Check cache for user status
-  const cachedStatus = cache.get(userId);
+  const cachedStatus = cache.get(redemptionCode);
   if (cachedStatus) {
     return res.json({ status: cachedStatus });
   }
 
   try {
-    const records = await fetchUserStatusFromAirtable(userId);
+    const records = await fetchUserStatusFromAirtable(redemptionCode);
     if (records.length > 0) {
       const status = records[0].get('Status');
       const recordId = records[0].id;
 
       // Cache the result
-      cache.set(userId, { status, recordId });
+      cache.set(redemptionCode, { status, recordId });
       res.json({ status });
     } else {
       res.status(404).json({ error: 'User not found' });
@@ -67,9 +67,9 @@ app.get('/api/user-status/:userId', async (req, res) => {
   }
 });
 
-// PUT request to update user status
-app.put('/api/user-status/:userId', async (req, res) => {
-  const { userId } = req.params;
+// PUT request to update user status by Redemption Code
+app.put('/api/user-status/:redemptionCode', async (req, res) => {
+  const { redemptionCode } = req.params;
   const { newStatus } = req.body;
 
   if (!newStatus) {
@@ -78,10 +78,10 @@ app.put('/api/user-status/:userId', async (req, res) => {
 
   try {
     // Fetch the user record ID from cache or Airtable
-    let recordData = cache.get(userId);
+    let recordData = cache.get(redemptionCode);
 
     if (!recordData) {
-      const records = await fetchUserStatusFromAirtable(userId);
+      const records = await fetchUserStatusFromAirtable(redemptionCode);
 
       if (records.length === 0) {
         return res.status(404).json({ error: 'User not found' });
@@ -91,14 +91,14 @@ app.put('/api/user-status/:userId', async (req, res) => {
         status: records[0].get('Status'),
         recordId: records[0].id,
       };
-      cache.set(userId, recordData);
+      cache.set(redemptionCode, recordData);
     }
 
     // Update the user status in Airtable
     await updateUserStatusInAirtable(recordData.recordId, newStatus);
 
     // Update the cache with the new status
-    cache.set(userId, { status: newStatus, recordId: recordData.recordId });
+    cache.set(redemptionCode, { status: newStatus, recordId: recordData.recordId });
 
     res.json({ message: 'User status updated successfully', status: newStatus });
   } catch (error) {
@@ -110,4 +110,3 @@ app.put('/api/user-status/:userId', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
-
