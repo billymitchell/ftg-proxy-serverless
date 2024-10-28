@@ -25,12 +25,15 @@ const cache = new NodeCache({ stdTTL: 60 }); // Cache for 60 seconds
 
 // Function to fetch user status from Airtable using Redemption Code
 async function fetchUserStatusFromAirtable(redemptionCode) {
-  return base(tableName)
+  const records = await base(tableName)
     .select({
       filterByFormula: `{Redemption Code} = "${redemptionCode}"`,
       maxRecords: 1,
     })
     .firstPage();
+  
+  console.log("Airtable records:", records);
+  return records;
 }
 
 // Function to update user status in Airtable
@@ -53,7 +56,7 @@ app.get('/api/redemption-code-status/:redemptionCode', async (req, res) => {
   try {
     const records = await fetchUserStatusFromAirtable(redemptionCode);
     if (records.length > 0) {
-      const status = records[0].get('Status');
+      const status = records[0].get('Redemption Status');
       const recordId = records[0].id;
 
       // Cache the result
