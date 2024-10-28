@@ -106,6 +106,12 @@ app.put('/api/user-status/:redemptionCode', async (req, res) => {
   }
 });
 
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Something went wrong!');
+});
+
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
