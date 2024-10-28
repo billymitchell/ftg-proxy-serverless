@@ -14,7 +14,7 @@ const limiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
   max: 100, // Limit each IP to 100 requests per minute
 });
-app.use('/api/user-status', limiter);
+app.use('/api/redemption-code-status', limiter);
 
 // Set up Airtable client
 const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base('appC9GXdjmEmFlNk7');
@@ -40,8 +40,8 @@ async function updateUserStatusInAirtable(recordId, newStatus) {
   });
 }
 
-// GET request to retrieve user status by Redemption Code
-app.get('/api/user-status/:redemptionCode', async (req, res) => {
+// GET request to retrieve redemption code status
+app.get('/api/redemption-code-status/:redemptionCode', async (req, res) => {
   const { redemptionCode } = req.params;
 
   // Check cache for user status
@@ -60,15 +60,15 @@ app.get('/api/user-status/:redemptionCode', async (req, res) => {
       cache.set(redemptionCode, { status, recordId });
       res.json({ status });
     } else {
-      res.status(404).json({ error: 'User not found' });
+      res.status(404).json({ error: 'Redemption code not found' });
     }
   } catch (error) {
-    res.status(500).json({ error: 'Failed to retrieve user status' });
+    res.status(500).json({ error: 'Failed to retrieve redemption code status' });
   }
 });
 
-// PUT request to update user status by Redemption Code
-app.put('/api/user-status/:redemptionCode', async (req, res) => {
+// PUT request to update redemption code status
+app.put('/api/redemption-code-status/:redemptionCode', async (req, res) => {
   const { redemptionCode } = req.params;
   const { newStatus } = req.body;
 
@@ -84,7 +84,7 @@ app.put('/api/user-status/:redemptionCode', async (req, res) => {
       const records = await fetchUserStatusFromAirtable(redemptionCode);
 
       if (records.length === 0) {
-        return res.status(404).json({ error: 'User not found' });
+        return res.status(404).json({ error: 'Redemption code not found' });
       }
 
       recordData = {
@@ -100,17 +100,11 @@ app.put('/api/user-status/:redemptionCode', async (req, res) => {
     // Update the cache with the new status
     cache.set(redemptionCode, { status: newStatus, recordId: recordData.recordId });
 
-    res.json({ message: 'User status updated successfully', status: newStatus });
+    res.json({ message: 'Redemption code status updated successfully', status: newStatus });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to update user status' });
+    res.status(500).json({ error: 'Failed to update redemption code status' });
   }
 });
-
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).send('Something went wrong!');
-});
-
 
 // Start the server
 app.listen(PORT, () => {
