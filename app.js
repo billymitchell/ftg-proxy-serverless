@@ -1,7 +1,23 @@
 const express = require('express');
+const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Set up CORS to allow requests from both www and non-www versions of the domain
+const allowedOriginsRegex = /^https?:\/\/(www\.)?ftg-redemption-test\.mybrightsites\.com$/;
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Check if the origin matches the regex or is undefined (for same-origin requests)
+    if (allowedOriginsRegex.test(origin) || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  // credentials: true, // Enable if cookies are needed for cross-origin requests
+}));
 
 // Middleware to parse JSON body
 app.use(express.json());
