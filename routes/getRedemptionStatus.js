@@ -27,11 +27,11 @@ router.get('/:redemptionCode', async (req, res) => {
         redemptionCode: record.get('Redemption Code'),
         establishmentName: record.get('Official Establishment Name'),
         establishmentType: record.get('Establishment Type'),
-        rating: record.get('Rating'),
+        awardLevel: record.get('Award Level'),
         redemptionStatus: record.get("Redemption Status"),
       });
     } else {
-      res.status(404).json({ error: 'Redemption code not found' });
+      res.status(404).json({ error: 'Sorry, this redemption code is not valid' });
     }
   } catch (error) {
     res.status(500).json({ error: 'Failed to retrieve redemption code status' });
