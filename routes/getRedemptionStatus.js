@@ -8,8 +8,14 @@ router.get('/:redemptionCode', async (req, res) => {
 
   // Check cache for user status
   const cachedStatus = cache.get(redemptionCode);
-  if (cachedStatus) {
-    return res.json({ status: cachedStatus });
+  if (cachedStatus && cachedStatus.status && cachedStatus.status.recordId) {
+    return res.json({
+      redemptionCode: cachedStatus.redemptionCode,
+      establishmentName: cachedStatus.establishmentName,
+      establishmentType: cachedStatus.establishmentType,
+      awardLevel: cachedStatus.awardLevel,
+      redemptionStatus: cachedStatus.redemptionStatus,
+    });
   }
 
   try {
@@ -20,7 +26,14 @@ router.get('/:redemptionCode', async (req, res) => {
       const recordId = record.id;
 
       // Cache the result
-      cache.set(redemptionCode, { status, recordId });
+      cache.set(redemptionCode, {
+        redemptionCode: record.get('Redemption Code'),
+        establishmentName: record.get('Official Establishment Name'),
+        establishmentType: record.get('Establishment Type'),
+        awardLevel: record.get('Award Level'),
+        redemptionStatus: record.get("Redemption Status"),
+        status: { recordId }
+      });
 
       // Send a response with the required data fields
       res.json({
