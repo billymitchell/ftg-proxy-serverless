@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const cache = require('../utils/cache');
-const { fetchUserStatusFromAirtable } = require('../utils/airtable');
+const { getAirtableRecord } = require('../utils/airtable');
 
 router.get('/:redemptionCode', async (req, res) => {
   const { redemptionCode } = req.params;
@@ -19,7 +19,7 @@ router.get('/:redemptionCode', async (req, res) => {
   }
 
   try {
-    const records = await fetchUserStatusFromAirtable(redemptionCode);
+    const records = await getAirtableRecord(redemptionCode);
     if (records.length > 0) {
       const record = records[0];
       const status = record.get('Status');
@@ -32,7 +32,6 @@ router.get('/:redemptionCode', async (req, res) => {
         establishmentType: record.get('Establishment Type'),
         awardLevel: record.get('Award Level'),
         redemptionStatus: record.get("Redemption Status"),
-        status: { recordId }
       });
 
       // Send a response with the required data fields

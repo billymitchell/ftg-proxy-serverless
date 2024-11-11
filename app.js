@@ -31,11 +31,11 @@ app.use(limiter);
 
 // Import routes
 const getRedemptionStatus = require('./routes/getRedemptionStatus');
-const updateRedemptionStatus = require('./routes/updateRedemptionStatus');
+const receiveOrderData = require('./routes/receiveOrderData');
 
 // Use the routes
 app.use('/api/redemption-code-status', getRedemptionStatus);
-app.use('/api/redemption-code-status', updateRedemptionStatus);
+app.use('/api', receiveOrderData);
 
 // Start the server
 app.listen(PORT, () => {
