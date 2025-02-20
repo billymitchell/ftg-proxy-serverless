@@ -1,9 +1,11 @@
-const express = require('express');
-const router = express.Router();
 const cache = require('../utils/cache');
-const { getAirtableRecord, updateRedemptionStatusInAirtable } = require('../utils/airtable');
+const { updateRedemptionStatusInAirtable } = require('../utils/airtable');
 
-router.post('/order-data', async (req, res) => {
+module.exports = async (req, res) => {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+  
   try {
     const order = req.body;
     if (!order || !order.line_items || !Array.isArray(order.line_items)) {
@@ -42,6 +44,4 @@ router.post('/order-data', async (req, res) => {
     console.error('Error updating redemption statuses:', error);
     res.status(500).json({ error: 'Failed to update redemption statuses' });
   }
-});
-
-module.exports = router;
+};
